@@ -1,0 +1,49 @@
+Fantasy Terminal — public data attribution and changes, October 16, 2026
+
+This is a collection of separately attributed data portions, not a claim to
+own or relicense third-party material. Private league information is excluded.
+
+NFL statistics, rosters, play-by-play, draft data and snap records:
+nflverse through nflreadpy; original sources include NFL and PFR.
+https://github.com/nflverse/nflverse-data
+https://github.com/nflverse/nflverse-data/blob/main/LICENSE.md
+Attribution 4.0 International (CC BY 4.0) as published by nflverse, subject to
+any separately designated third-party material. Our changes: cutoff filtering,
+exact identifier joins, recorded-appearance averages and readable summaries.
+
+Expected fantasy points and derived opportunity/gap/forecast data portions:
+ffopportunity, Joe Sydlowski and Tan Ho / ffverse, via nflverse.
+https://ffopportunity.ffverse.com/
+https://creativecommons.org/licenses/by-sa/4.0/
+Creative Commons Attribution-ShareAlike 4.0. Our changes: position-specific
+PPR sums, per-appearance averages, scoring-source decomposition, conservative
+gap weights and separately evaluated forecasts. Adapted expected-points data
+are shared under CC BY-SA 4.0. Upstream version lineage is not independently
+verified for each cached historical release. Historical revisions are possible.
+
+Open receiving tracking:
+NFL Next Gen Stats via nflverse/nflreadpy. Target-weighted separation/cushion;
+reception-weighted yards-after-catch above expectation. Weekly records only,
+no season-total row used as a pre-cutoff input. Not all-routes-run metrics.
+https://nflreadr.nflverse.com/articles/dictionary_nextgen_stats.html
+
+Market data portion (also separately downloadable as market.json):
+DynastyProcess.com / FantasyPros Expert Consensus Rankings.
+https://github.com/dynastyprocess/data
+GPL-3.0; full upstream license is market-license.txt. The adapter source is
+market-source.txt. Changes: exact provider-ID mapping, current dated format
+selection, tied within-position ranks/scores, and an allowlisted public subset.
+These are consensus-derived references, not actual executed trades or dollars.
+No KTC or Dynasty Daddy price feed is included. Market rank comparisons derived
+from this portion retain the upstream GPL-3.0 license.
+
+Draft ADP portion:
+Fantasy Football Calculator, PPR / 12 teams, with original draft sample dates.
+The official API documentation permits personal and commercial use and requests
+attribution. Not a live in-season trade price. Unlisted players are not zero.
+https://fantasyfootballcalculator.com/
+https://help.fantasyfootballcalculator.com/article/42-adp-rest-api
+
+Full current routes-run counts are not redistributed. The sources checked did
+not establish a reliable current feed with public reuse permission. Snap share
+and targeted-pass separation are not silently substituted for routes run.

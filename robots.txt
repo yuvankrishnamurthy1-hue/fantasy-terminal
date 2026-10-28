@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://yuvankrishnamurthy1-hue.github.io/fantasy-terminal/sitemap.xml

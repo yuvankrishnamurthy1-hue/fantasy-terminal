@@ -1,0 +1,120 @@
+"""GPL-3.0 DynastyProcess data adapter. No KTC/DD/route feed redistribution.
+
+Published derived data retains its upstream license and attribution. Rankings
+are dated expert-market proxies, not completed trades, dollars or ADP.
+"""
+from datetime import datetime, timezone
+from io import BytesIO
+import hashlib
+import re
+from pathlib import Path
+import polars as pl
+import requests
+from .dashboard_snapshot import write_snapshot
+
+SOURCE = "https://raw.githubusercontent.com/dynastyprocess/data/master/"
+
+
+def name_key(name):
+    return re.sub(r"[^a-z0-9]", "", re.sub(r"\b(jr|sr|ii|iii|iv)\b", "", name.lower()))
+
+
+def capture(raw, force=False):
+    """Atomic aggregate capture; a failed download never gets a fresh date."""
+    path=Path(raw)/"public_market/latest.json"
+    if path.exists() and not force:
+        import json
+        cached=json.loads(path.read_text(encoding="utf-8"))
+        if cached["observedAt"][:10] == datetime.now(timezone.utc).date().isoformat():
+            return cached
+    frames={}
+    hashes={}
+    for name,file in [("ids","db_playerids.csv"),("dynasty","values-players.csv"),("ranks","db_fpecr.parquet")]:
+        response=requests.get(SOURCE+"files/"+file,timeout=90)
+        response.raise_for_status()
+        hashes[file]=hashlib.sha256(response.content).hexdigest()
+        frames[name]=pl.read_parquet(BytesIO(response.content)) if file.endswith("parquet") else pl.read_csv(BytesIO(response.content),infer_schema_length=None)
+    id_groups={}
+    for r in frames["ids"].to_dicts():
+        if r.get("fantasypros_id") and re.fullmatch(r"\d{2}-\d{7}",str(r.get("gsis_id", ""))):
+            id_groups.setdefault(str(r["fantasypros_id"]),set()).add(str(r["gsis_id"]))
+    ids={key:next(iter(values)) for key,values in id_groups.items() if len(values)==1}
+    rows=[]
+    today=datetime.now(timezone.utc).date().isoformat()
+    dynasty=frames["dynasty"].filter(pl.col("scrape_date").cast(pl.String)<=today)
+    for r in dynasty.to_dicts():
+        pid=ids.get(str(r["fp_id"]))
+        if r["pos"] in {"WR","RB","TE","QB"}:
+            rows.append(dict(gsis=pid,name=r["player"],position=r["pos"],lens="dynasty",
+                date=str(r["scrape_date"]),value1qb=r["value_1qb"],value2qb=r["value_2qb"],rank=float(r["ecr_pos"]),
+                kind="Dynasty expert-consensus trade-value proxy"))
+    rankings=frames["ranks"].filter((pl.col("page_type").str.starts_with("redraft-")) & (pl.col("ecr_type")=="rp") &
+        pl.col("pos").is_in(["WR","RB","TE","QB"]) & (pl.col("scrape_date").cast(pl.String)<=today))
+    for pos in ("WR","RB","TE","QB"):
+        subset=rankings.filter(pl.col("page_type")=="redraft-"+pos.lower())
+        if not subset.height: continue
+        last=str(subset["scrape_date"].max())
+        for r in subset.filter(pl.col("scrape_date").cast(pl.String)==last).to_dicts():
+            pid=ids.get(str(r["id"]))
+            if r["ecr"] is not None:
+                rows.append(dict(gsis=pid,name=r["player"],position=pos,lens="redraft",date=last,
+                    value1qb=None,value2qb=None,rank=float(r["ecr"]),kind="Redraft expert-consensus rank proxy; not ADP"))
+    for lens in ("dynasty","redraft"):
+        for pos in ("WR","RB","TE","QB"):
+            pool=sorted((r for r in rows if r["lens"]==lens and r["position"]==pos),key=lambda r:(r["rank"],r["name"]))
+            # Tied expert ranks share an average ordinal place, not an arbitrary
+            # name tiebreak. These ranks are within the complete source pool.
+            for r in pool:
+                less=sum(x["rank"]<r["rank"] for x in pool)
+                equal=sum(x["rank"]==r["rank"] for x in pool)
+                r["positionRank"]=less+(equal+1)/2
+                r["positionCount"]=len(pool)
+                r["score"]=100*(len(pool)-r["positionRank"])/max(1,len(pool)-1)
+    result=dict(observedAt=datetime.now(timezone.utc).isoformat(),status="ok",source="DynastyProcess / FantasyPros ECR",
+        url="https://github.com/dynastyprocess/data",license="GPL-3.0",hashes=hashes,rows=rows,
+        limitations="Expert-consensus proxy, not real completed trades or ADP. Data dates may lag observation. Dynasty prices cover multiple seasons; four-week production ranks are a different horizon.")
+    write_snapshot(path,result)
+    write_snapshot(path.parent/(result["observedAt"].replace(":","")+".json"),result)
+    return result
+
+
+def attach(players,market):
+    """Input players contain public IDs plus private join IDs only in memory."""
+    lookup={(r["gsis"],r["lens"]):r for r in market["rows"] if r.get("gsis")}
+    public={}
+    for p in players:
+        row={}
+        for lens in ("dynasty","redraft"):
+            source=lookup.get((p["gsis"],lens))
+            if source:
+                row[lens]={k:source[k] for k in ("date","value1qb","value2qb","positionRank","positionCount","score","kind")}
+        public[p["id"]]=row
+    return dict(source=market["source"],url=market["url"],license=market["license"],observedAt=market["observedAt"],
+                status=market["status"],hashes=market["hashes"],limitations=market["limitations"],players=public)
+
+
+def adp_reference(raw,season):
+    """FFC explicitly permits personal/commercial embedding with attribution.
+
+    Preserve the draft date range. Fetch time does not make offseason-style
+    draft prices a live in-season trade quote. Name+position matches must be
+    unique on both sides; never turn an unlisted player into a zero price.
+    """
+    path=Path(raw)/f"public_market/ffc_{season}.json"
+    import json
+    today=datetime.now(timezone.utc).date().isoformat()
+    if path.exists():
+        cached=json.loads(path.read_text(encoding="utf-8"))
+        if cached["observedAt"][:10]==today:return cached
+    url=f"https://fantasyfootballcalculator.com/api/v1/adp/ppr?teams=12&year={season}"
+    response=requests.get(url,timeout=45)
+    response.raise_for_status()
+    data=response.json()
+    if data.get("status")!="Success" or not isinstance(data.get("players"),list):raise ValueError("Invalid FFC ADP response")
+    if not str(data.get("meta",{}).get("end_date","")).startswith(str(season)):
+        raise ValueError("FFC season mismatch")
+    result=dict(source="Fantasy Football Calculator",url=url,
+        permission="https://help.fantasyfootballcalculator.com/article/42-adp-rest-api",
+        observedAt=datetime.now(timezone.utc).isoformat(),meta=data["meta"],rows=data["players"])
+    write_snapshot(path,result)
+    return result
