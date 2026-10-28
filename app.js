@@ -6,9 +6,6 @@ const icon=name=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 function hydrateIcons(scope=document){scope.querySelectorAll("[data-icon]").forEach(e=>{e.innerHTML=icon(e.dataset.icon);});}
 const W=globalThis.WeeklyPlayerStories,S=globalThis.PublicStatGuide,R=globalThis.PublicWRRanks,G=globalThis.PublicGrowingOpportunity,V=globalThis.PublicValueEvidence;
 hydrateIcons();
-const tradeNav=document.createElement('button');tradeNav.type='button';tradeNav.className='nav-item';tradeNav.dataset.view='trades';tradeNav.innerHTML=icon('arrow')+'NFL trade block';$('nav[aria-label="Main views"]').insertBefore(tradeNav,$('[data-view="research"]'));
-const injuryNav=document.createElement('button');injuryNav.type='button';injuryNav.className='nav-item';injuryNav.dataset.view='injuries';injuryNav.innerHTML=icon('players')+'Injury opportunities';$('nav[aria-label="Main views"]').insertBefore(injuryNav,$('[data-view="research"]'));
-const scheduleNav=document.createElement('button');scheduleNav.type='button';scheduleNav.className='nav-item';scheduleNav.dataset.view='schedule';scheduleNav.innerHTML=icon('players')+'Schedule';$('nav[aria-label="Main views"]').insertBefore(scheduleNav,$('[data-view="research"]'));
 const PAGE_SIZE=25;
 for(const [value,label] of [["outlook","Model estimate · pts/game ↓"],["market","Market rank · best first"],["marketgap","Redraft market gap ↓"],["rawgap","Raw usage gap ↓"]]){const option=document.createElement("option");option.value=value;option.textContent=label;$("#sort").append(option);}
 $('#sort option[value="gap"]').textContent="Conservative gap ↓";
@@ -19,7 +16,7 @@ R.install(document);
 for(const [value,label] of [["rankgap","WR Model estimate above market"],["rankdown","WR Model estimate below market"]]){const o=document.createElement("option");o.value=value;o.textContent=label;$("#sort").append(o);}
 const cheaperButton=document.createElement("button");cheaperButton.type="button";cheaperButton.dataset.group="cheaper";cheaperButton.textContent="Cheaper vs outlook";cheaperButton.setAttribute("aria-pressed","false");$(".view-tabs").append(cheaperButton);
 const roleButton=document.createElement("button");roleButton.type="button";roleButton.dataset.group="role";roleButton.textContent="Role changes";roleButton.setAttribute("aria-pressed","false");$(".view-tabs").append(roleButton);
-const growingButton=document.createElement('button');growingButton.type='button';growingButton.dataset.group='growing';growingButton.textContent='Growing opportunity';growingButton.setAttribute('aria-pressed','false');$('.view-tabs').append(growingButton);
+const growingButton=document.createElement('button');growingButton.type='button';growingButton.dataset.group='growing';growingButton.textContent='Increased opportunities';growingButton.setAttribute('aria-pressed','false');$('.view-tabs').append(growingButton);
 const growthSort=new Option('Extra work per game','growth');$('#sort').append(growthSort);
 // Keep all existing research controls, but put specialist choices behind one disclosure.
 const U=globalThis.PublicWorkspace;
@@ -33,7 +30,7 @@ const disclosures=document.createElement('div');disclosures.className='board-dis
 for(const key of ['development','veteran','cheaper','role'])$('.advanced-groups').append($(`[data-group="${key}"]`));
 for(const [key,label] of [['excess','Scoring above usage'],['unexplained','Gap after past patterns']]){const b=document.createElement('button');b.type='button';b.dataset.group=key;b.textContent=label;b.setAttribute('aria-pressed','false');$('.advanced-groups').append(b);const o=new Option(label,key);$('#sort').append(o);}
 const marketAge=document.createElement('div');marketAge.id='market-age';$('.context-line').after(marketAge);
-$('#board-evidence').innerHTML='Find players whose workload and scoring tell different stories. Scoring improved more than matched controls; market gains were not established. <button type="button" data-open-view="research">See both tests</button>';
+$('#board-evidence').innerHTML='Tested across 2021–2025: 220 flagged player-seasons rose from 9.1 to 10.7 points/game, below the 12.4 suggested by usage. This does not prove their trade value rose. <button type="button" data-open-view="research">Read the test and its limits</button>';
 const primarySorts=['market','gap','ppg','usage','outlook'];
 for(const option of [...$('#sort').options])if(!primarySorts.includes(option.value))$('#advanced-sort').append(option);
 const sortLabels={market:'Market rank',gap:'Usage gap',ppg:'Points scored',usage:'Usage points',outlook:'Model estimate',rawgap:'Usage gap · same order',marketgap:'Redraft price difference',rankgap:'WR model higher than market',rankdown:'WR model lower than market',football:'Football score',age:'Youngest first',name:'Name A–Z',growth:'Work increase',excess:'Scoring above usage',unexplained:'Gap after past patterns'};
@@ -41,12 +38,12 @@ for(const option of [...$('#sort').options,...$('#advanced-sort').options])if(so
 const syncColumns=()=>$$('[data-column]').forEach(input=>$$("#table-wrapper ."+input.dataset.column).forEach(cell=>cell.classList.toggle('optional-hidden',!input.checked)));
 $$('[data-column]').forEach(input=>input.addEventListener('change',syncColumns));
 $('#advanced-sort').addEventListener('change',e=>{if(e.target.value){state.sort=e.target.value;state.page=1;closePlayer();}});
-const state={data:null,view:"players",position:"WR",lens:"dynasty",group:"all",sort:"market",query:"",page:1,selected:null,tradeSelected:null,injurySelected:null,injuryPosition:'ALL',watchlist:[]};
+const state={snapshot:"latest",data:null,view:"players",position:"WR",lens:"dynasty",group:"all",sort:"market",query:"",page:1,selected:null,tradeSelected:null,injurySelected:null,injuryPosition:'ALL',watchlist:[]};
 state.schedule=PublicSchedule.normalize();
 let checking=false,returnTarget=null,lastAvailabilityReview=Date.now(),lastCheckAt=0;
 try{const saved=JSON.parse(localStorage.getItem("fantasy-public-watchlist-v1")||"[]");if(Array.isArray(saved))state.watchlist=saved.filter(x=>typeof x==="string").slice(0,500);}catch{/* Browser storage is optional. */}
-function restore(){const p=new URLSearchParams(location.search);for(const [key,allowed] of Object.entries({view:["players","watchlist","trades","injuries","schedule","research","about"],position:["ALL","WR","RB","TE","QB"],lens:["redraft","dynasty"],group:["all","gap","development","veteran","cheaper","role","growing","excess","unexplained"],sort:["ppg","gap","rawgap","outlook","market","marketgap","rankgap","rankdown","usage","football","age","name","growth","excess","unexplained"]}))if(allowed.includes(p.get(key)))state[key]=p.get(key);state.query=p.get("q")||"";state.page=Math.max(1,Number(p.get("page"))||1);state.selected=p.get("player");state.tradeSelected=p.get('trade');state.injurySelected=p.get('injury');state.injuryPosition=['RB','WR','TE'].includes(p.get('ip'))?p.get('ip'):'ALL';$('#trade-search').value=p.get('tq')||'';$('#trade-level').value=['all','reported','analysis'].includes(p.get('evidence'))?p.get('evidence'):'all';$('#injury-search').value=p.get('iq')||'';state.schedule=PublicSchedule.normalize(Object.fromEntries(['sp','sm','sw','ss','ps','pe','sq'].map(k=>[k,p.get(k)])));if((state.lens==="redraft"&&["development","veteran"].includes(state.group))||(state.lens==="dynasty"&&state.group==="cheaper"))state.group="all";}
-function writeUrl(push=false){const u=new URL(location.href);for(const key of ["view","position","lens","group","sort"])u.searchParams.set(key,state[key]);for(const [key,value] of [["q",state.query],["page",state.page===1?null:state.page],["player",state.selected],['trade',state.tradeSelected],['injury',state.injurySelected],['ip',state.injuryPosition==='ALL'?null:state.injuryPosition],['tq',$('#trade-search').value],['evidence',$('#trade-level').value==='all'?null:$('#trade-level').value],['iq',$('#injury-search').value]])value?u.searchParams.set(key,value):u.searchParams.delete(key);for(const [key,value] of Object.entries(state.schedule))value?u.searchParams.set(key,value):u.searchParams.delete(key);if(u.href!==location.href)history[push?"pushState":"replaceState"]({},"",u);}
+function restore(){const p=new URLSearchParams(location.search);state.snapshot=PublicSnapshots.normalize(p.get("snapshot"));for(const [key,allowed] of Object.entries({view:["players","watchlist","trades","injuries","schedule","research","about"],position:["ALL","WR","RB","TE","QB"],lens:["redraft","dynasty"],group:["all","gap","development","veteran","cheaper","role","growing","excess","unexplained"],sort:["ppg","gap","rawgap","outlook","market","marketgap","rankgap","rankdown","usage","football","age","name","growth","excess","unexplained"]}))if(allowed.includes(p.get(key)))state[key]=p.get(key);state.query=p.get("q")||"";state.page=Math.max(1,Number(p.get("page"))||1);state.selected=p.get("player");state.tradeSelected=p.get('trade');state.injurySelected=p.get('injury');state.injuryPosition=['RB','WR','TE'].includes(p.get('ip'))?p.get('ip'):'ALL';$('#trade-search').value=p.get('tq')||'';$('#trade-level').value=['all','reported','analysis'].includes(p.get('evidence'))?p.get('evidence'):'all';$('#injury-search').value=p.get('iq')||'';state.schedule=PublicSchedule.normalize(Object.fromEntries(['sp','sm','sw','ss','ps','pe','sq'].map(k=>[k,p.get(k)])));if((state.lens==="redraft"&&["development","veteran"].includes(state.group))||(state.lens==="dynasty"&&state.group==="cheaper"))state.group="all";}
+function writeUrl(push=false){const u=new URL(location.href);if(state.snapshot!=="latest")u.searchParams.set("snapshot",state.snapshot);else u.searchParams.delete("snapshot");for(const key of ["view","position","lens","group","sort"])u.searchParams.set(key,state[key]);for(const [key,value] of [["q",state.query],["page",state.page===1?null:state.page],["player",state.selected],['trade',state.tradeSelected],['injury',state.injurySelected],['ip',state.injuryPosition==='ALL'?null:state.injuryPosition],['tq',$('#trade-search').value],['evidence',$('#trade-level').value==='all'?null:$('#trade-level').value],['iq',$('#injury-search').value]])value?u.searchParams.set(key,value):u.searchParams.delete(key);for(const [key,value] of Object.entries(state.schedule))value?u.searchParams.set(key,value):u.searchParams.delete(key);if(u.href!==location.href)history[push?"pushState":"replaceState"]({},"",u);}
 function initials(p){return p.name.split(/\s+/).slice(0,2).map(x=>x[0]).join("");}
 function avatar(p){return `<span class="avatar ${p.position}" aria-hidden="true"><span>${esc(initials(p))}</span><span class="avatar-position">${esc(p.position)}</span></span>`;}
 function display(x,d=1){return M.finite(x)?M.fmt(x,d):"—";}
@@ -84,7 +81,7 @@ function render(){
  $("#total-count").textContent=state.data.players.length;$("#watch-count").textContent=state.watchlist.filter(id=>state.data.players.some(p=>p.id===id)).length;
  for(const pos of ["WR","RB","TE","QB"])$("#count-"+pos).textContent=state.data.players.filter(p=>p.position===pos).length;
  $$("[data-position]").forEach(b=>{if(b.dataset.position===state.position&&board)b.setAttribute("aria-current","true");else b.removeAttribute("aria-current");});
- $("#board-title").textContent=names[state.view]||"Players";$("#board-description").textContent=state.view==="watchlist"?"Saved on this browser. A shortlist, not an endorsement.":"Find players whose workload and scoring tell different stories.";
+ $("#board-title").textContent=state.view==="players"?"Workload ahead of scoring":names[state.view]||"Players";$("#board-description").textContent=state.view==="watchlist"?"Saved on this browser. A shortlist, not an endorsement.":"Find players whose workload and scoring tell different stories.";
  $('#board-evidence').hidden=state.view!=='players';
  $('#market-age').innerHTML=V.marketLine(state.data,state.lens);
  $("#search").value=state.query;$("#position").value=state.position;
@@ -157,9 +154,10 @@ function render(){
  if(!rows.length&&state.group==="cheaper"&&state.position==="QB"){document.getElementById("empty-title").textContent="QB price-gap screen not supported";document.getElementById("empty-copy").textContent="The dated market-only benchmark predicted QB scoring better. We do not turn disagreement into a buy recommendation; use All players to inspect the numbers.";}
  if(!rows.length&&state.group==="role"){document.getElementById("empty-title").textContent=state.position==="QB"?"QB role-change rule not supported":"No sustained role increases meet this rule";document.getElementById("empty-copy").textContent="This narrow screen needs five appearances and two recent games with repeated increases. Missing data, team changes and injury-recovery samples require review. All players still have their available evidence; an empty screen does not mean nobody can break out.";}
  if(!rows.length&&state.group==='growing'){$('#empty-title').textContent=state.position==='QB'?'Growing opportunity supports RB, WR and TE':'No players meet this workload rule';$('#empty-copy').textContent='Needs five comparable appearances, more work in the latest two-game average and supporting snap/share growth. Missing data is not evidence that a player cannot improve. Try All players.';}
+ PublicSnapshots.decorate(state,document);
  writeUrl();
 }
-function showView(view){closePlayer(false);state.view=view;state.page=1;closeMenu();writeUrl(true);render();$("#content").focus({preventScroll:true});}
+function showView(view){if(state.snapshot!=="latest"&&!["players","watchlist"].includes(view)){switchSnapshot("latest",view);return;}closePlayer(false);state.view=view;state.page=1;closeMenu();writeUrl(true);render();$("#content").focus({preventScroll:true});}
 function renderSchedule(){
  const active=document.activeElement,focusId=active?.id,selection=active?.id==='schedule-search'?active.selectionStart:null,windowFocus=active?.dataset.scheduleWindow;
  const methodOpen=$('#schedule-content .schedule-method')?.open,studyOpen=$('#schedule-content .schedule-study details')?.open;
@@ -204,6 +202,7 @@ function renderPlayer(){
  const rankAnchor=$(".outlook-explainer");
  if(rankAnchor){rankAnchor.insertAdjacentHTML('afterend',U.bars(p,state.data));if(p.position==='WR')rankAnchor.insertAdjacentHTML('afterend',`<details class="wr-rank-panel"><summary>Model rank versus market · experimental</summary>${R.panel(p,R.build(state.data,state.lens),state.data)}</details>`);}
  $$('#detail-content details summary').forEach(e=>{if(expanded.includes(e.textContent))e.parentElement.open=true;});
+ PublicSnapshots.decoratePanel(p,state.data,document);
  panel.dataset.renderedPlayer=p.id;panel.scrollTop=scroll;
  $("#close-player").addEventListener("click",()=>closePlayer(true));
  $("#panel-watch").addEventListener("click",()=>{toggleWatch(p.id);$("#panel-watch").focus({preventScroll:true});});
@@ -212,12 +211,12 @@ function togglePlayer(id,trigger){if(state.selected===id){closePlayer(true);retu
 function closePlayer(focus=false){const id=state.selected;state.selected=null;$("#player-panel").close();document.body.classList.remove("panel-open");if(state.data)render();if(focus)(document.querySelector(state.view==='schedule'?`[data-schedule-player="${id}"]`:state.view==='trades'?`[data-trade-player="${id}"]`:state.view==='injuries'?`[data-opportunity-player="${id}"]`:`[data-player="${id}"]`)||(returnTarget?.isConnected?returnTarget:null)||$("#search"))?.focus({preventScroll:true});}
 function renderResearch(){const d=state.data;$("#research-rows").innerHTML=d.historical.rbComparison.map(r=>`<tr><td>${esc(r.method)}</td><td>${M.fmt(r.rankingRelationship,3)}</td><td>${Number(r.rows).toLocaleString()}</td></tr>`).join("");$("#research-coverage").textContent=`The saved receiver archive contains ${d.historical.wrSnapshots.toLocaleString()} player/cutoff observations across ${d.historical.seasons.join(", ")}. That is research coverage, not successful predictions or unique players.`;const date=d.footballUpdatedAt?new Date(d.footballUpdatedAt):null;$("#about-freshness").textContent=`Published coverage: ${M.cutoffLabel(d)}.${date&&!Number.isNaN(date.valueOf())?` The underlying football file was generated ${date.toLocaleDateString("en-US",{timeZone:"America/Los_Angeles",month:"long",day:"numeric",year:"numeric"})}.`:""} The site checks for a newer published snapshot when you return and every five minutes while visible.`;}
 async function loadData(manual=false){
- if(checking||(!manual&&Date.now()-lastCheckAt<60000))return;checking=true;lastCheckAt=Date.now();$("#refresh").disabled=true;if(manual)$("#refresh-status").textContent="Checking published data…";
+ if(checking||(!manual&&Date.now()-lastCheckAt<60000))return;checking=true;lastCheckAt=Date.now();$("#refresh").disabled=true;$("#snapshot").disabled=true;if(manual)$("#refresh-status").textContent="Checking published data…";
  try{
-  const response=await fetch('data.json',{cache:'no-cache'});if(!response.ok)throw Error("Download failed");
+  const response=await fetch(PublicSnapshots.path(state.snapshot),{cache:'no-cache'});if(!response.ok)throw Error("Download failed");
   const data=M.validate(await response.json());
   PublicSchedule.validate(data.scheduleContext,data);
-  if(state.data&&(data.season<state.data.season||(data.season===state.data.season&&data.throughWeek<state.data.throughWeek)))throw Error("Older snapshot rejected");
+  if(state.data&&state.data.snapshotKey===data.snapshotKey&&(data.season<state.data.season||(data.season===state.data.season&&data.throughWeek<state.data.throughWeek)))throw Error("Older snapshot rejected");
   const initial=!state.data,changed=!initial&&!M.sameSnapshot(state.data,data);
   const reviewChanged=!initial&&state.data.players.some(p=>{const expiry=Date.parse(p.availability?.reviewAfter);return expiry>=lastAvailabilityReview&&expiry<Date.now();});
   const priceExpired=!initial&&state.data.players.some(p=>['redraft','dynasty'].some(l=>{const expiry=Date.parse(p.market?.[l]?.date)+72*3600e3;return expiry>=lastAvailabilityReview&&expiry<Date.now();}));
@@ -238,7 +237,7 @@ async function loadData(manual=false){
   $("#refresh-status").textContent=changed?"New published snapshot loaded":manual?"Checked · latest published snapshot":"Completed-week snapshots";
  }
  catch(error){$("#data-error").hidden=false;$("#data-error").textContent=state.data?"The update couldn't be verified. Keeping the last loaded data and its original cutoff.":"The player data couldn't load. Check your connection, then use the refresh button. Research and project information remain available.";$("#refresh-status").textContent="Update unavailable";if(!state.data){$("#player-rows").innerHTML="";$("#table-wrapper").setAttribute("aria-busy","false");$("#snapshot-status").textContent="Data unavailable · no cutoff assumed";}}
- finally{checking=false;$("#refresh").disabled=false;}
+ finally{checking=false;$("#refresh").disabled=false;$("#snapshot").disabled=false;}
 }
 $$("[data-view]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.view)));
 $$("[data-open-view]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.openView)));
@@ -260,7 +259,15 @@ $("#player-panel").addEventListener("cancel",e=>{e.preventDefault();closePlayer(
 $("#player-panel").addEventListener("click",e=>{if(e.target===$("#player-panel")){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientY<r.top||e.clientX>r.right||e.clientY>r.bottom)closePlayer(true);}});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){if($("#player-panel").open)closePlayer(true);else closeMenu();}if(e.key==="/"&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)&&!$("#player-panel").open){e.preventDefault();showView("players");$("#search").focus();}});
 matchMedia("(min-width:1180px)").addEventListener("change",()=>{if(!$("#player-panel").open)return;const id=state.selected,trigger=returnTarget;closePlayer();togglePlayer(id,trigger);});
-addEventListener("popstate",()=>{$("#player-panel").close();document.body.classList.remove("panel-open");state.selected=null;restore();const id=state.selected;state.selected=null;render();if(id&&state.data?.players.some(p=>p.id===id))togglePlayer(id,$("#search"));});
+addEventListener("popstate",()=>{$("#player-panel").close();document.body.classList.remove("panel-open");state.selected=null;const prior=state.snapshot;restore();const id=state.selected;state.selected=null;if(prior!==state.snapshot){state.data=null;lastCheckAt=0;loadData(true).then(()=>{if(id&&state.data?.players.some(p=>p.id===id))togglePlayer(id,$("#search"));});}else{render();if(id&&state.data?.players.some(p=>p.id===id))togglePlayer(id,$("#search"));}});
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")loadData(false);});
 setInterval(()=>{if(document.visibilityState==="visible")loadData(false);},300000);
-restore();const initialPlayer=state.selected;state.selected=null;loadData(false).then(()=>{if(initialPlayer&&state.data?.players.some(p=>p.id===initialPlayer))togglePlayer(initialPlayer,$("#search"));});
+restore();if(!['players','watchlist'].includes(state.view))state.snapshot='latest';const initialPlayer=state.selected;state.selected=null;loadData(false).then(()=>{if(initialPlayer&&state.data?.players.some(p=>p.id===initialPlayer))togglePlayer(initialPlayer,$("#search"));});
+
+async function switchSnapshot(key,view='players'){
+ if(checking)return;
+ closePlayer(false);state.snapshot=PublicSnapshots.normalize(key);state.view=view;state.data=null;state.query='';state.page=1;state.selected=null;
+ if(state.snapshot!=='latest'){state.position='ALL';state.group='gap';state.sort='gap';state.lens='dynasty';}
+ lastCheckAt=0;writeUrl(true);await loadData(true);
+}
+$('#snapshot').addEventListener('change',e=>switchSnapshot(e.target.value));
