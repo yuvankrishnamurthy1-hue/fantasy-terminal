@@ -9,11 +9,16 @@
   const age=(now-stamp)/86400000;
   return {current:age>=0&&age<=3,date:q.date,label:age<0?'Future source date—unverified':age>3?`Old price · source ${q.date}`:`Source ${q.date}`,ageDays:age};
  }
- function marketLine(data,lens){
+ function marketLine(data,lens,now=Date.now()){
   const dates=[...new Set(data.players.map(p=>p.market?.[lens]?.date).filter(Boolean))].sort();
   const latest=dates.at(-1),retrieved=data.marketRefreshedAt||data.marketSource?.observedAt;
-  const stale=!latest||!fresh({market:{[lens]:{date:latest}}},lens).current;
-  return `<p class="value-freshness${stale?' value-caution':''}">Market source: ${esc(latest||'unavailable')}${stale?' · old or unverified':''} · checked ${esc(retrieved?.slice(0,10)||'unavailable')}. Football: Week ${data.throughWeek}. ${lens==='dynasty'?'Dynasty prices cover future years; the model estimate does not.':'Expert ranks are a price proxy, not an executed trade.'}</p>`;
+  const status=fresh({market:{[lens]:latest?{date:latest}:null}},lens,now),stale=!status.current;
+  const sourceDate=latest&&/^\d{4}-\d{2}-\d{2}$/.test(latest)&&Number.isFinite(Date.parse(latest))?new Date(latest+'T00:00:00Z').toLocaleDateString('en-US',{timeZone:'UTC',month:'short',day:'numeric',year:'numeric'}):null;
+  const checkDate=Number.isFinite(Date.parse(retrieved))?new Date(retrieved).toLocaleDateString('en-US',{timeZone:'America/Los_Angeles',month:'short',day:'numeric',year:'numeric'}):'not verified';
+  const old=status.ageDays>3;
+  const label=sourceDate?`${sourceDate}${old?' (outdated)':status.ageDays<0?' (future date; unverified)':''}`:'date unavailable';
+  const reason=old?'The newest rankings available in this saved feed are more than three days old. A new download does not make them newer. Outdated rankings stay visible for reference but cannot qualify a player for the current-price buy-low screen.':stale?'No current publication date is verified, so these rankings cannot support a current-price buy-low screen.':'Rankings and football statistics update separately. Each player’s price section shows his own source date; some players may have older or missing rankings.';
+  return `<div class="value-freshness${stale?' value-caution':''}"><p><strong>Market rankings: ${esc(label)}.</strong> Source checked ${esc(checkDate)} (Pacific). Stats through Week ${data.throughWeek}.</p><p class="value-horizon">Model estimate = points per game over the next four weeks, if playing. ${lens==='dynasty'?'Dynasty market rank = value across future seasons.':'Redraft market rank = expert rankings for this season.'}</p><details><summary>About these dates and rankings</summary><p>${esc(reason)} Our public market reference is DynastyProcess / FantasyPros expert consensus, not a guaranteed trade price. The scoring estimate is not a career-value forecast.</p></details></div>`;
  }
  function panel(p,data,lens){
   const c=p.efficiencyContext,quote=fresh(p,lens);
