@@ -6,13 +6,13 @@
 <title>Players · Fantasy Terminal</title>
 <link rel="stylesheet" href="style.css?v=injury-context-20261020">
 <link rel="stylesheet" href="fantasy-theme.css?v=injury-context-20261020">
-<link rel="stylesheet" href="workspace.css?v=clear-market-dates-20261027">
+<link rel="stylesheet" href="workspace.css?v=reading-key-20261027">
 <script src="value-evidence-ui.js?v=clear-market-dates-20261027" defer></script>
 <script src="model.js?v=trade-health-20261027" defer></script>
 <script src="player-detail.js?v=injury-context-20261020" defer></script>
 <script src="evidence-ui.js?v=injury-context-20261020" defer></script>
 <script src="weekly-story.js?v=audit-fixes-20261021" defer></script>
-<script src="stat-guide.js?v=injury-context-20261020" defer></script>
+<script src="stat-guide.js?v=plain-guide-20261027" defer></script>
 <script src="wr-ranks.js?v=injury-context-20261020" defer></script>
 <script src="workspace-ui.js?v=audit-fixes-20261021" defer></script>
 <script src="growing-opportunity.js?v=growth-20261023" defer></script>
@@ -20,7 +20,7 @@
 <script src="trade-watch.js?v=trade-health-20261027" defer></script>
 <script src="injury-opportunities.js?v=rb-roles-20261021" defer></script>
 <script src="schedule-ui.js?v=schedule2-20261023" defer></script>
-<script src="app.js?v=fantasy-terminal-20261027" defer></script>
+<script src="app.js?v=reading-key-20261027" defer></script>
 </head><body>
 <a class="skip" href="#content">Skip to workspace</a>
 <div class="shell">
@@ -40,6 +40,11 @@
     <div class="view-tabs" role="group" aria-label="Player evidence groups"><button data-group="all" aria-pressed="true">All players<span id="tab-total"></span></button><button data-group="gap" aria-pressed="false">Scoring below usage</button><button data-group="development" aria-pressed="false">Longer-term research</button><button data-group="veteran" aria-pressed="false">Veteran rentals</button></div>
     <div class="board-controls"><label class="search-field"><span data-icon="search"></span><span class="sr-only">Search players</span><input id="search" type="search" placeholder="Search players or teams…" autocomplete="off"><kbd>/</kbd></label><div class="filter-controls"><label><span class="sr-only">Position</span><select id="position"><option value="WR">Wide receivers</option><option value="RB">Running backs</option><option value="TE">Tight ends</option><option value="QB">Quarterbacks</option><option value="ALL">All positions</option></select></label><label><span class="sr-only">Sort players</span><select id="sort"><option value="ppg">Current PPR ↓</option><option value="gap">Usage gap ↓</option><option value="usage">Recorded usage ↓</option><option value="football">Football score ↓</option><option value="age">Age ↑</option><option value="name">Name A–Z</option></select></label></div></div>
     <div class="context-line"><p id="lens-context">Dynasty: current points are not a remaining-career forecast.</p><span id="result-count" aria-live="polite"></span></div><div class="data-error" id="data-error" role="status" hidden></div>
+    <aside class="reading-key" aria-labelledby="reading-key-title">
+      <h2 id="reading-key-title">How to read this</h2>
+      <p><strong>Scored</strong> is actual points per game. <strong>Usage</strong> is what recorded targets, carries and pass attempts typically produce. <strong>Gap = Usage − Scored.</strong> A positive gap means workload is ahead of scoring, not a guaranteed breakout.</p>
+      <p><strong>PPR</strong> means one point per catch, plus points for yards and touchdowns. Snaps show involvement; they do not directly set usage points.</p>
+    </aside>
     <details class="coverage-disclosure"><summary id="coverage-quick">Data coverage & update notes</summary><p class="coverage-note" id="coverage-note"></p></details>
     <div class="table-wrapper" id="table-wrapper" aria-busy="true"><table><caption class="sr-only">Player comparison. Select a name to inspect his evidence. All points use standard PPR.</caption><thead><tr><th scope="col" class="index-col">#</th><th scope="col">Player</th><th scope="col" class="age-col">Age</th><th scope="col">PPR / game</th><th scope="col" class="usage-col">Usage / game</th><th scope="col" class="gap-col">Usage − actual</th><th scope="col" class="games-col">Games</th><th scope="col" class="role-col">Role evidence</th><th scope="col" class="watch-col"><span class="sr-only">Watchlist</span></th></tr></thead><tbody id="player-rows"><tr><td colspan="9" class="loading-cell">Loading the published player snapshot…</td></tr></tbody></table><div id="empty" class="empty-state" hidden><span data-icon="search"></span><h2 id="empty-title">No players match</h2><p id="empty-copy">Try a different name, position or evidence group.</p><button type="button" id="clear-filters">Reset filters</button></div></div>
     <div class="table-footer"><span id="page-description"></span><div class="pagination"><button class="icon-button" id="previous" type="button" aria-label="Previous page"><span data-icon="left"></span></button><span id="page"></span><button class="icon-button" id="next" type="button" aria-label="Next page"><span data-icon="right"></span></button></div></div>

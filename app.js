@@ -23,7 +23,7 @@ const growingButton=document.createElement('button');growingButton.type='button'
 const growthSort=new Option('Extra work per game','growth');$('#sort').append(growthSort);
 // Keep all existing research controls, but put specialist choices behind one disclosure.
 const U=globalThis.PublicWorkspace;
-const help=document.createElement('details');help.className='board-help';help.innerHTML='<summary>How to read this · data coverage</summary>';
+const help=document.createElement('details');help.className='board-help';help.innerHTML='<summary>Sources & detailed definitions</summary>';
 help.insertAdjacentHTML('beforeend',`<details><summary>Growing opportunity · what qualifies?</summary>${G.method()}</details>`);
 for(const selector of ['.coverage-disclosure','.numbers-guide','#wr-rank-legend'])help.append($(selector));
 $('#table-wrapper').before(help);
