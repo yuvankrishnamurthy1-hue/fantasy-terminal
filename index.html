@@ -6,7 +6,7 @@
 <title>Players · Fantasy Terminal</title>
 <link rel="stylesheet" href="style.css?v=injury-context-20261020">
 <link rel="stylesheet" href="fantasy-theme.css?v=injury-context-20261020">
-<link rel="stylesheet" href="workspace.css?v=shared-views-20261028">
+<link rel="stylesheet" href="workspace.css?v=full-week3-pool-20261028">
 <script src="value-evidence-ui.js?v=clear-market-dates-20261027" defer></script>
 <script src="model.js?v=trade-health-20261027" defer></script>
 <script src="player-detail.js?v=injury-context-20261020" defer></script>
@@ -20,8 +20,8 @@
 <script src="trade-watch.js?v=trade-health-20261027" defer></script>
 <script src="injury-opportunities.js?v=rb-roles-20261021" defer></script>
 <script src="schedule-ui.js?v=schedule2-20261023" defer></script>
-<script src="snapshots.js?v=shared-views-20261028" defer></script>
-<script src="app.js?v=shared-views-20261028" defer></script>
+<script src="snapshots.js?v=full-week3-pool-20261028" defer></script>
+<script src="app.js?v=full-week3-pool-20261028" defer></script>
 </head><body>
 <a class="skip" href="#content">Skip to workspace</a>
 <div class="shell">
@@ -39,7 +39,7 @@
     <div class="page-heading"><div><h1 id="board-title">Workload ahead of scoring</h1><p id="board-description">Find players whose workload and scoring tell different stories.</p></div><div class="lens" role="group" aria-label="Valuation lens"><button type="button" data-lens="redraft" aria-pressed="false">Redraft</button><button type="button" data-lens="dynasty" aria-pressed="true">Dynasty</button></div></div>
     <p id="board-evidence" class="board-evidence">Compare fantasy points, workload and dated market ranks. In a fixed study, 220 gap flags rose from 9.1 to 10.7 points/game—not the full 12.4 from usage. Research, not automatic picks. <button type="button" data-open-view="research">See the test and its limits</button></p>
     <div class="view-tabs" role="group" aria-label="Player evidence groups"><button data-group="all" aria-pressed="true">Players<span id="tab-total"></span></button><button data-group="gap" aria-pressed="false">Scoring below usage</button><button data-group="development" aria-pressed="false">Longer-term research</button><button data-group="veteran" aria-pressed="false">Veteran rentals</button></div>
-    <div class="board-controls"><label class="snapshot-picker">Data view<select id="snapshot"><option value="latest">Latest completed week</option><option value="2026-week3">2026 · Week 3 shortlist</option></select></label><label class="search-field"><span data-icon="search"></span><span class="sr-only">Search players</span><input id="search" type="search" placeholder="Search players or teams…" autocomplete="off"><kbd>/</kbd></label><div class="filter-controls"><label><span class="sr-only">Position</span><select id="position"><option value="WR">Wide receivers</option><option value="RB">Running backs</option><option value="TE">Tight ends</option><option value="QB">Quarterbacks</option><option value="ALL">All positions</option></select></label><label><span class="sr-only">Sort players</span><select id="sort"><option value="ppg">Current PPR ↓</option><option value="gap">Usage gap ↓</option><option value="usage">Recorded usage ↓</option><option value="football">Football score ↓</option><option value="age">Age ↑</option><option value="name">Name A–Z</option></select></label></div></div>
+    <div class="board-controls"><label class="snapshot-picker">Data view<select id="snapshot"><option value="latest">Latest completed week</option><option value="2026-week3">2026 · Week 3 research pool</option></select></label><label class="search-field"><span data-icon="search"></span><span class="sr-only">Search players</span><input id="search" type="search" placeholder="Search players or teams…" autocomplete="off"><kbd>/</kbd></label><div class="filter-controls"><label><span class="sr-only">Position</span><select id="position"><option value="WR">Wide receivers</option><option value="RB">Running backs</option><option value="TE">Tight ends</option><option value="QB">Quarterbacks</option><option value="ALL">All positions</option></select></label><label><span class="sr-only">Sort players</span><select id="sort"><option value="ppg">Current PPR ↓</option><option value="gap">Usage gap ↓</option><option value="usage">Recorded usage ↓</option><option value="football">Football score ↓</option><option value="age">Age ↑</option><option value="name">Name A–Z</option></select></label></div></div>
     <div class="context-line"><p id="lens-context">Dynasty: current points are not a remaining-career forecast.</p><span id="result-count" aria-live="polite"></span></div><div class="data-error" id="data-error" role="status" hidden></div>
     <aside class="reading-key" aria-labelledby="reading-key-title">
       <h2 id="reading-key-title">How to read this</h2>

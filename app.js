@@ -6,7 +6,7 @@ const icon=name=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 function hydrateIcons(scope=document){scope.querySelectorAll("[data-icon]").forEach(e=>{e.innerHTML=icon(e.dataset.icon);});}
 const W=globalThis.WeeklyPlayerStories,S=globalThis.PublicStatGuide,R=globalThis.PublicWRRanks,G=globalThis.PublicGrowingOpportunity,V=globalThis.PublicValueEvidence;
 hydrateIcons();
-const PAGE_SIZE=25;
+let PAGE_SIZE=25;
 for(const [value,label] of [["outlook","Model estimate · pts/game ↓"],["market","Market rank · best first"],["marketgap","Redraft market gap ↓"],["rawgap","Raw usage gap ↓"]]){const option=document.createElement("option");option.value=value;option.textContent=label;$("#sort").append(option);}
 $('#sort option[value="gap"]').textContent="Conservative gap ↓";
 $('#sort option[value="ppg"]').textContent="Scored · pts/game ↓";
@@ -51,6 +51,7 @@ function role(p){const a=M.availability(p);if(a.blocked||a.status==="Questionabl
 function groupNote(){if(state.group==="gap")return `Players scoring 2+ points below their position's recorded usage with 3+ appearances.${state.lens==="dynasty"?" Veterans and unknown ages stay out of this research group.":" This is a rebound screen, not a buy rating."}`;if(state.group==="veteran")return "Veteran rentals: potential points now, not developmental dynasty breakouts.";if(state.group==="development")return "Verified non-veterans. Younger age alone does not establish talent or future value.";if(state.sort==="football")return "Saved football scores compare evidence within position—not future points or remaining-career dynasty value.";return state.lens==="dynasty"?"Current PPR sorts this season's scoring—not remaining-career dynasty value.":"Redraft focuses on this season. Past averages and usage are not next-week projections.";}
 function preserveScenarioList(container,scroll,attribute,id){const list=$(container+' .scenario-list');if(!list)return;list.scrollTop=scroll;const button=id?list.querySelector(`[${attribute}="${id}"]`):null;if(button&&list.getClientRects().length){const item=button.getBoundingClientRect(),box=list.getBoundingClientRect();if(item.top<box.top)list.scrollTop-=box.top-item.top;else if(item.bottom>box.bottom)list.scrollTop+=item.bottom-box.bottom;}}
 function render(){
+ PAGE_SIZE=state.snapshot==='2026-week3'?10:25;
  const board=["players","watchlist"].includes(state.view),names={players:"Players",watchlist:"Watchlist",trades:"NFL trade block",injuries:"Injury opportunities",schedule:"Schedule",research:"Research",about:"About Fantasy Terminal"};
  document.body.classList.toggle('growing-screen',board&&state.group==='growing');
  $('#trade-view').hidden=state.view!=='trades';

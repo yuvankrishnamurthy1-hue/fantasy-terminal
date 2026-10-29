@@ -287,4 +287,6 @@ body:not(.ready) #board-view .board-help, body:not(.ready) .lens { visibility: h
 .snapshot-note{font-size:12px;line-height:1.5;color:var(--muted);margin:8px 0}
 .historical-view #table-wrapper .age-col,.historical-view #table-wrapper .games-col,
 .historical-view .model-phone{display:none!important}
+.historical-view #player-rows .player-reason{display:none}
+.historical-view #player-rows td{height:50px;padding-top:6px;padding-bottom:6px}
 @media(max-width:700px){.snapshot-picker{width:100%}.snapshot-picker select{max-width:none;width:100%}}
