@@ -17,13 +17,15 @@
   return `<span>${point(r.outlook_ppg)}</span><small>${Array.isArray(band)&&band.length===2&&band.every(M.finite)?`typical range ${point(band[0])}–${point(band[1])}`:'Typical range unavailable'}</small>`;
  }
  function series(p,data){
-  const cutoff=M.cutoffFor(data,p),rows=data.weeklyPlayerContext?.players?.[p.id]?.weeklyPoints||[];
+  // Live results (refreshed each Tuesday) run past the model's cutoff; fall back to the saved series.
+  const T=root.PublicTrends,cutoff=T&&data.live?.players?.[p.id]?T.through(data):M.cutoffFor(data,p);
+  const rows=T?T.weekly(p,data):data.weeklyPlayerContext?.players?.[p.id]?.weeklyPoints||[];
   return rows.filter(r=>Number.isInteger(r.week)&&r.week>=1&&r.week<=cutoff).slice().sort((a,b)=>a.week-b.week);
  }
  function chart(p,data){
   const rows=series(p,data);
   if(!rows.length)return '<section class="player-chart"><h3>Weekly points versus usage</h3><p>No verified weekly series is linked. Missing games are not zeroes.</p></section>';
-  const cutoff=M.cutoffFor(data,p),values=rows.flatMap(r=>[r.ppr,r.usage]).filter(M.finite),peak=Math.max(5,...values),step=peak>25?10:5,low=Math.floor(Math.min(0,...values)/step)*step,high=Math.ceil(peak/step)*step,span=high-low||1;
+  const cutoff=Math.max(M.cutoffFor(data,p),...rows.map(r=>r.week)),values=rows.flatMap(r=>[r.ppr,r.usage]).filter(M.finite),peak=Math.max(5,...values),step=peak>25?10:5,low=Math.floor(Math.min(0,...values)/step)*step,high=Math.ceil(peak/step)*step,span=high-low||1;
   const x=w=>38+(w-1)*334/Math.max(1,cutoff-1),y=v=>150-(v-low)*126/span;
   const dots=(key,cls)=>rows.filter(r=>M.finite(r[key])).map(r=>`<circle class="${cls}" cx="${x(r.week).toFixed(1)}" cy="${y(r[key]).toFixed(1)}" r="4"><title>Week ${r.week}: ${point(r[key])} ${key==='ppr'?'scored':'usage'} points</title></circle>`).join('');
   // Join only adjacent weeks with data. Never bridge a missing/bye week as zero.

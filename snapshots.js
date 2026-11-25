@@ -2,7 +2,7 @@
 (function(root){
  'use strict';
  const normalize=key=>key==='2026-week3'?key:'latest';
- const path=key=>normalize(key)==='latest'?'data.json':'snapshot-2026-week3.json';
+ const path=key=>normalize(key)==='latest'?'data/summary.json':'snapshot-2026-week3.json';
  const historical=data=>data?.snapshotKey==='2026-week3';
  function decorate(state,doc){
   const old=historical(state.data);doc.body.classList.toggle('historical-view',old);
